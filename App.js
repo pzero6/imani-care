@@ -7,12 +7,12 @@ import { ActivityIndicator, View } from 'react-native';
 import CameraScreen from './src/screens/CameraScreen';
 import HistoryScreen from './src/screens/HistoryScreen';
 import HomeScreen from './src/screens/HomeScreen';
+import QuestionnaireScreen from './src/screens/QuestionnaireScreen'; // <--- IMPORT NOVO
 import ResultScreen from './src/screens/ResultScreen';
 import ScheduleScreen from './src/screens/ScheduleScreen';
 import ServicesScreen from './src/screens/ServicesScreen';
-import WelcomeScreen from './src/screens/WelcomeScreen'; // <--- IMPORT NOVO
+import WelcomeScreen from './src/screens/WelcomeScreen';
 
-// Import do Serviço de Usuário
 import { getUser } from './src/services/userService';
 import { theme } from './src/utils/theme';
 
@@ -21,18 +21,15 @@ const Stack = createStackNavigator();
 export default function App() {
   const [initialRoute, setInitialRoute] = useState(null);
 
-  // Verifica se o usuário já existe ao abrir o app
   useEffect(() => {
     checkUser();
   }, []);
 
   const checkUser = async () => {
     const user = await getUser();
-    // Se tiver usuário, vai pra Home. Se não, vai pra Welcome.
     setInitialRoute(user ? 'Home' : 'Welcome');
   };
 
-  // Enquanto decide, mostra um loading
   if (initialRoute === null) {
     return (
       <View style={{flex:1, justifyContent:'center', alignItems:'center'}}>
@@ -48,8 +45,12 @@ export default function App() {
         <Stack.Screen name="Welcome" component={WelcomeScreen} />
         <Stack.Screen name="Home" component={HomeScreen} />
         
+        {/* Fluxo de Diagnóstico */}
+        <Stack.Screen name="Questionnaire" component={QuestionnaireScreen} options={{ headerShown: true, title: 'Diagnóstico Inicial' }} />
         <Stack.Screen name="Camera" component={CameraScreen} />
         <Stack.Screen name="Result" component={ResultScreen} />
+        
+        {/* Outras Telas */}
         <Stack.Screen name="Services" component={ServicesScreen} options={{ headerShown: true, title: 'Menu de Serviços' }} />
         <Stack.Screen name="Schedule" component={ScheduleScreen} options={{ headerShown: true, title: 'Entenda o Cronograma' }} />
         <Stack.Screen name="History" component={HistoryScreen} options={{ title: 'Diário Capilar', headerShown: true }} />

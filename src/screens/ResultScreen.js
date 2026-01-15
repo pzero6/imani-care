@@ -2,14 +2,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { analyzeHair } from '../services/geminiService';
-import { saveAnalysis } from '../services/storageService'; // <--- IMPORTAÇÃO NOVA
+import { saveAnalysis } from '../services/storageService';
 import { theme } from '../utils/theme';
 
-// 🔴 CONFIRA SE O NÚMERO ESTÁ CERTO
+// 🔴 SEU NÚMERO AQUI
 const PHONE_NUMBER = "5511999999999"; 
 
 export default function ResultScreen({ route, navigation }) {
-  const { photoUri, base64 } = route.params || {};
+  // Recebe a foto E o formulário de contexto
+  const { photoUri, base64, formData } = route.params || {};
+  
   const [loading, setLoading] = useState(true);
   const [result, setResult] = useState(null);
 
@@ -21,13 +23,13 @@ export default function ResultScreen({ route, navigation }) {
     try {
       if (!base64) throw new Error("Imagem não processada.");
       
-      const aiData = await analyzeHair(base64);
+      // Envia a foto e os dados para a IA analisar
+      const aiData = await analyzeHair(base64, formData);
+      
       setResult(aiData);
-
-      // --- A MÁGICA ACONTECE AQUI ---
-      // Salvamos o resultado no histórico silenciosamente
+      
+      // Salva no histórico
       await saveAnalysis(aiData);
-      // -----------------------------
 
     } catch (error) {
       Alert.alert("Erro", "Não foi possível analisar.");
@@ -38,7 +40,7 @@ export default function ResultScreen({ route, navigation }) {
 
   const openWhatsApp = () => {
     if (!result) return;
-    const message = `Olá! 🦁 Fiz a análise no App Imani Care.\n\nMeu cabelo foi identificado como *${result.type}*.\nA recomendação foi: *${result.care}*.\n\nGostaria de agendar um horário para tratar meus cachos!`;
+    const message = `Olá! 🦁 Fiz a análise no App e deu: *${result.type}*.\nMinha queixa era: ${formData?.mainComplaint || 'Nenhuma'}.\nRecomendação da IA: ${result.care}.\nQuero agendar!`;
     const url = `https://wa.me/${PHONE_NUMBER}?text=${encodeURIComponent(message)}`;
     Linking.openURL(url).catch(() => Alert.alert("Erro", "Não foi possível abrir o WhatsApp."));
   };
@@ -47,7 +49,7 @@ export default function ResultScreen({ route, navigation }) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={styles.loadingText}>A IA está analisando e salvando... 🦁</Text>
+        <Text style={styles.loadingText}>A IA está analisando seus dados... 🦁</Text>
       </View>
     );
   }
@@ -60,7 +62,7 @@ export default function ResultScreen({ route, navigation }) {
 
       <View style={styles.content}>
         <View style={styles.badge}>
-          <Text style={styles.badgeText}>Análise Salva no Histórico ✅</Text>
+          <Text style={styles.badgeText}>Análise Completa ✅</Text>
         </View>
         
         <Text style={styles.title}>Seu tipo é {result.type}</Text>
@@ -68,7 +70,7 @@ export default function ResultScreen({ route, navigation }) {
 
         <View style={styles.divider} />
 
-        <Text style={styles.sectionTitle}>Diagnóstico 🩺</Text>
+        <Text style={styles.sectionTitle}>Diagnóstico Personalizado 🩺</Text>
         
         <View style={styles.careCard}>
           <Text style={styles.careEmoji}>✨</Text>
@@ -78,7 +80,7 @@ export default function ResultScreen({ route, navigation }) {
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Sugestão Econômica 💰</Text>
+        <Text style={styles.sectionTitle}>Produtos Recomendados 💰</Text>
         {result.products && result.products.map((prod, index) => (
           <View key={index} style={styles.productRow}>
             <Text style={styles.check}>✓</Text>

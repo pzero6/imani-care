@@ -1,18 +1,26 @@
-// Agora a chave vem do arquivo .env (segurança máxima!)
 const API_KEY = process.env.EXPO_PUBLIC_GEMINI_KEY;
 
-export const analyzeHair = async (base64Image) => {
+export const analyzeHair = async (base64Image, userContext) => {
   try {
-    // Verificação de segurança
     if (!API_KEY) {
-        console.error("❌ ERRO: Chave de API não encontrada. Verifique o arquivo .env");
+        console.error("❌ ERRO: Chave de API não encontrada.");
         return mockBackup();
     }
+
+    // Monta um texto com as respostas da cliente
+    const contextText = userContext 
+      ? `DADOS DA CLIENTE:
+         - Tem Química? ${userContext.hasChemical ? 'SIM' : 'NÃO'}
+         - Usa Fonte de Calor (Secador/Chapinha)? ${userContext.usesHeat ? 'SIM' : 'NÃO'}
+         - Maior Queixa: ${userContext.mainComplaint}
+         
+         Leve esses dados em consideração extrema para o diagnóstico.`
+      : "";
 
     const cleanKey = API_KEY.trim();
     const cleanBase64 = base64Image.replace(/^data:image\/(png|jpg|jpeg);base64,/, "").trim();
 
-    console.log("🚀 Tentando modelo da lista: gemini-flash-latest...");
+    console.log("🚀 Enviando foto + contexto para a IA...");
 
     const MODEL_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${cleanKey}`;
 
@@ -22,7 +30,11 @@ export const analyzeHair = async (base64Image) => {
         body: JSON.stringify({
           contents: [{
             parts: [
-              { text: "Você é um especialista em cabelos. Retorne APENAS um JSON válido: { \"type\": \"3A\", \"description\": \"Cachos soltos\", \"care\": \"Hidratação\", \"products\": [\"Creme de Pentear\", \"Gelatina\"], \"tips\": \"Use fronha de cetim.\" }." },
+              { text: `Você é um especialista em cabelos crespos e cacheados (Visagista e Tricologista).
+                       ${contextText}
+                       Analise a imagem e retorne APENAS um JSON válido (sem markdown) com: 
+                       { "type": "ex: 3A", "description": "ex: Cachos soltos", "care": "ex: Nutrição", "products": ["ex: Óleo"], "tips": "Dica baseada na queixa e na foto" }.` 
+              },
               { inline_data: { mime_type: "image/jpeg", data: cleanBase64 } }
             ]
           }]
@@ -49,10 +61,10 @@ export const analyzeHair = async (base64Image) => {
 
 function mockBackup() {
     return {
-        type: "3B (Modo Offline)",
-        description: "Não conseguimos conectar à IA agora, mas seu cabelo parece ter curvatura média com necessidade de definição.",
-        care: "Hidratação Potente",
-        products: ["Salon Line Definição", "Óleo de Argan"],
-        tips: "A IA está instável no momento. Tente novamente em alguns minutos para uma análise precisa."
+        type: "Análise Offline",
+        description: "Não conseguimos conectar à IA agora.",
+        care: "Hidratação Básica",
+        products: ["Creme de Pentear"],
+        tips: "Tente novamente mais tarde."
     };
 }
