@@ -1,30 +1,23 @@
 import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useRef, useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function CameraScreen({ navigation, route }) {
-  const [permission, requestPermission] = useCameraPermissions();
-  const [facing, setFacing] = useState('back');
+  // Permissões
+  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
+  const [galleryPermission, requestGalleryPermission] = ImagePicker.useMediaLibraryPermissions();
+
+  const [facing, setFacing] = useState('front'); 
   const cameraRef = useRef(null);
+  const formData = route.params?.formData || {};
 
   useEffect(() => {
-    if (permission && !permission.granted) {
-      requestPermission();
+    if (cameraPermission && !cameraPermission.granted) {
+      requestCameraPermission();
     }
-  }, [permission]);
-
-  if (!permission) return <View />;
-  if (!permission.granted) {
-    return (
-      <View style={styles.container}>
-        <Text style={{ textAlign: 'center', marginBottom: 20 }}>Precisamos de acesso à câmera</Text>
-        <TouchableOpacity onPress={requestPermission} style={styles.permButton}>
-            <Text style={{color: '#fff'}}>Permitir</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
+  }, [cameraPermission]);
 
   const toggleCamera = () => {
     setFacing(current => (current === 'back' ? 'front' : 'back'));
@@ -37,64 +30,126 @@ export default function CameraScreen({ navigation, route }) {
           quality: 0.5,
           base64: true,
         });
-        
-        // Pega os dados que vieram do questionário (ou vazio se não tiver)
-        const formData = route.params?.formData || {};
-
-        // Passa a FOTO + os DADOS para a tela de resultado
         navigation.navigate('Result', { 
             photoUri: photo.uri, 
             base64: photo.base64,
             formData: formData 
         });
-
       } catch (error) {
         Alert.alert("Erro", "Não foi possível tirar a foto.");
       }
     }
   };
 
+  const pickImage = async () => {
+    // 1. Pede permissão se não tiver
+    if (!galleryPermission?.granted) {
+      const permissionResponse = await requestGalleryPermission();
+      if (!permissionResponse.granted) {
+        Alert.alert("Permissão negada", "Precisamos de acesso às suas fotos.");
+        return;
+      }
+    }
+
+    try {
+      // 2. Abre a Galeria
+      const result = await ImagePicker.launchImageLibraryAsync({
+        // CORREÇÃO AQUI: Voltamos para o 'MediaTypeOptions' que é garantido funcionar
+        mediaTypes: ImagePicker.MediaTypeOptions.Images, 
+        allowsEditing: false, 
+        aspect: [4, 4],
+        quality: 0.5,
+        base64: true, 
+      });
+
+      if (!result.canceled) {
+        navigation.navigate('Result', { 
+          photoUri: result.assets[0].uri, 
+          base64: result.assets[0].base64,
+          formData: formData 
+        });
+      }
+    } catch (error) {
+      console.error("Erro Galeria:", error);
+      Alert.alert("Erro", "Não conseguimos abrir a galeria.");
+    }
+  };
+
+  if (!cameraPermission) return <View />;
+  if (!cameraPermission.granted) {
+    return (
+      <View style={styles.container}>
+        <Text style={{ textAlign: 'center', marginTop: 50, color: '#FFF' }}>Precisamos de acesso à câmera</Text>
+        <TouchableOpacity onPress={requestCameraPermission} style={styles.permButton}>
+            <Text style={{color: '#fff'}}>Permitir Câmera</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <CameraView 
-        style={styles.camera} 
+        style={StyleSheet.absoluteFillObject} 
         facing={facing} 
         ref={cameraRef}
-      >
+      />
+
+      <View style={styles.overlay}>
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.flipButton} onPress={toggleCamera}>
-            <Ionicons name="camera-reverse" size={30} color="white" />
+          
+          <TouchableOpacity style={styles.iconButton} onPress={pickImage}>
+            <Ionicons name="images" size={28} color="white" />
+            <Text style={styles.iconText}>Galeria</Text>
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.captureButton} onPress={takePicture}>
             <View style={styles.innerCircle} />
           </TouchableOpacity>
 
-          <View style={{width: 50}} /> 
+          <TouchableOpacity style={styles.iconButton} onPress={toggleCamera}>
+            <Ionicons name="camera-reverse" size={28} color="white" />
+            <Text style={styles.iconText}>Virar</Text>
+          </TouchableOpacity>
+
         </View>
-      </CameraView>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  camera: { flex: 1 },
-  permButton: { backgroundColor: '#C1A163', padding: 10, borderRadius: 5, alignSelf: 'center' },
-  buttonContainer: {
-    flex: 1, flexDirection: 'row', backgroundColor: 'transparent', 
-    marginBottom: 40, justifyContent: 'space-around', alignItems: 'flex-end'
+  container: { flex: 1, backgroundColor: 'black' },
+  permButton: { backgroundColor: '#5D4037', padding: 10, borderRadius: 5, alignSelf: 'center', marginTop: 20 },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    justifyContent: 'flex-end',
+    paddingBottom: 40,
   },
-  flipButton: { 
-    width: 50, height: 50, borderRadius: 25, 
-    backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' 
+  buttonContainer: {
+    flexDirection: 'row', 
+    justifyContent: 'space-around', 
+    alignItems: 'flex-end',
+    paddingHorizontal: 20
   },
   captureButton: {
     width: 80, height: 80, borderRadius: 40, backgroundColor: 'white',
-    justifyContent: 'center', alignItems: 'center'
+    justifyContent: 'center', alignItems: 'center', marginBottom: 10
   },
   innerCircle: {
     width: 70, height: 70, borderRadius: 35,
-    borderWidth: 2, borderColor: '#C1A163', backgroundColor: 'white'
+    borderWidth: 2, borderColor: '#5D4037', backgroundColor: 'white'
+  },
+  iconButton: {
+    alignItems: 'center',
+    marginBottom: 25,
+    width: 60
+  },
+  iconText: {
+    color: 'white',
+    fontSize: 12,
+    marginTop: 4,
+    textAlign: 'center'
   }
 });

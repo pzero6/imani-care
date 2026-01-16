@@ -1,35 +1,37 @@
 import { useState } from 'react';
-import { Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { saveUser } from '../services/userService';
-import { theme } from '../utils/theme';
+import { Image, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function WelcomeScreen({ navigation }) {
   const [name, setName] = useState('');
 
-  const handleLogin = async () => {
-    if (name.trim() === '') {
-      Alert.alert("Ops!", "Por favor, digite seu nome.");
-      return;
-    }
+  const handleLogin = () => {
+    const nameToSend = name.trim() !== '' ? name : 'Cacheada';
+    navigation.navigate('Home', { userName: nameToSend });
+  };
 
-    // Salva o nome e vai para a Home
-    await saveUser(name);
-    // O 'replace' impede que o usuário volte para o login ao apertar 'voltar'
-    navigation.replace('Home');
+  const handleVisitante = () => {
+    navigation.navigate('Home', { userName: 'Visitante' });
   };
 
   return (
-    <View style={styles.container}>
-      {/* Círculo decorativo no fundo */}
-      <View style={styles.circle} />
-
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.container}
+    >
       <View style={styles.content}>
-        <Image 
-            source={require('../../assets/icon.png')} 
-            style={styles.logo} 
-        />
         
-        <Text style={styles.title}>Bem-vinda ao Imani Care 🦁</Text>
+        {/* Logo Imani */}
+        <View style={styles.logoContainer}>
+           <Image
+            // O caminho ../../ volta para a raiz do projeto para achar a pasta assets
+            source={require('../../assets/icon.png')} 
+            style={styles.logoImage}
+            resizeMode="contain"
+           />
+        </View>
+
+        <Text style={styles.title}>Bem-vinda ao Imani Care</Text>
+
         <Text style={styles.subtitle}>Sua jornada capilar começa aqui.</Text>
 
         <View style={styles.inputContainer}>
@@ -37,7 +39,7 @@ export default function WelcomeScreen({ navigation }) {
           <TextInput
             style={styles.input}
             placeholder="Digite seu nome..."
-            placeholderTextColor="#999"
+            placeholderTextColor="#A1887F"
             value={name}
             onChangeText={setName}
           />
@@ -46,42 +48,94 @@ export default function WelcomeScreen({ navigation }) {
         <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Text style={styles.buttonText}>Entrar</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity onPress={handleVisitante}>
+          <Text style={styles.guestLink}>Entrar como Visitante</Text>
+        </TouchableOpacity>
+
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.background, justifyContent: 'center' },
-  
-  circle: {
-    position: 'absolute', top: -100, right: -100,
-    width: 300, height: 300, borderRadius: 150,
-    backgroundColor: 'rgba(193, 161, 99, 0.2)', // Cor dourada transparente
+  container: {
+    flex: 1,
+    backgroundColor: '#FAF9F6', // Off-white
+    justifyContent: 'center',
+    padding: 20,
   },
-
-  content: { padding: 30, alignItems: 'center' },
-  
-  logo: { width: 120, height: 120, marginBottom: 30, borderRadius: 60 },
-  
-  title: { fontSize: 28, fontWeight: 'bold', color: theme.colors.primary, textAlign: 'center', marginBottom: 10 },
-  subtitle: { fontSize: 16, color: theme.colors.textLight, textAlign: 'center', marginBottom: 40 },
-
-  inputContainer: { width: '100%', marginBottom: 25 },
-  label: { fontSize: 16, color: theme.colors.text, marginBottom: 8, fontWeight: 'bold' },
-  input: { 
-    backgroundColor: '#fff', 
-    borderRadius: 12, 
-    padding: 15, 
+  content: {
+    alignItems: 'center',
+    width: '100%',
+  },
+  logoContainer: {
+    marginBottom: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 180, 
+  },
+  logoImage: {
+    width: 150, // Ajuste este valor se a logo ficar muito grande ou pequena
+    height: 150, 
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: '#5D4037', // Marrom café
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  subtitle: {
     fontSize: 16,
-    borderWidth: 1, borderColor: '#ddd'
+    color: '#8D6E63',
+    textAlign: 'center',
+    marginBottom: 40,
   },
-
+  inputContainer: {
+    width: '100%',
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#3E2723',
+    marginBottom: 8,
+    alignSelf: 'flex-start',
+  },
+  input: {
+    width: '100%',
+    height: 50,
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#D7CCC8',
+    paddingHorizontal: 15,
+    fontSize: 16,
+    color: '#3E2723',
+  },
   button: {
-    backgroundColor: theme.colors.primary,
-    paddingVertical: 15, paddingHorizontal: 60,
-    borderRadius: 30,
-    elevation: 5
+    width: '100%',
+    height: 55,
+    backgroundColor: '#5D4037',
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  buttonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' }
+  buttonText: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  guestLink: {
+    color: '#8D6E63',
+    fontSize: 14,
+    textDecorationLine: 'underline',
+  },
 });

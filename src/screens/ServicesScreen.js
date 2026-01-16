@@ -1,88 +1,86 @@
-import { Ionicons } from '@expo/vector-icons';
-import { Alert, FlatList, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { theme } from '../utils/theme';
+import { FontAwesome, Ionicons } from '@expo/vector-icons';
+import { FlatList, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-// 🔴 CONFIGURAÇÃO: Coloque o número do Salão aqui
-const PHONE_NUMBER = "5511999999999"; 
-
-const servicesData = [
+// Dados dos serviços baseados nos seus prints
+const SERVICES = [
   {
     id: '1',
     title: 'Box Braids',
     price: 'A partir de R$ 250',
     description: 'Tranças soltas com fibra Jumbo. Diversas cores e tamanhos.',
-    icon: 'apps' // Ícone de "quadradinhos" representando as tranças
+    icon: 'grid-outline'
   },
   {
     id: '2',
     title: 'Trança Nagô',
     price: 'A partir de R$ 80',
     description: 'Tranças rasteiras desenhadas, com ou sem extensão.',
-    icon: 'git-network' // Ícone que parece um desenho de caminhos
+    icon: 'infinite-outline'
   },
   {
     id: '3',
     title: 'Entrelace',
     price: 'A partir de R$ 300',
     description: 'Aplicação de fibra orgânica com acabamento natural.',
-    icon: 'infinite' // Ícone de infinito representando a costura
+    icon: 'git-merge-outline'
   },
   {
     id: '4',
-    title: 'Cronograma Capilar',
-    price: 'R$ 150 (4 sessões)',
-    description: 'Pacote mensal de Hidratação, Nutrição e Reconstrução.',
-    icon: 'water' // Ícone de gota
+    title: 'Mega Hair',
+    price: 'Sob Avaliação',
+    description: 'Alongamento e volume com diversas técnicas.',
+    icon: 'cut-outline'
   },
-  {
-    id: '5',
-    title: 'Corte e Finalização',
-    price: 'R$ 90',
-    description: 'Corte a seco especializado em curvaturas e fitagem.',
-    icon: 'cut' // Ícone de tesoura
-  }
 ];
 
-export default function ServicesScreen() {
+export default function ServicesScreen({ navigation }) {
 
-  const openWhatsApp = (serviceName) => {
-    const message = `Olá! Vi o serviço de *${serviceName}* no App Imani Care e gostaria de agendar um horário! 🦁`;
-    const url = `https://wa.me/${PHONE_NUMBER}?text=${encodeURIComponent(message)}`;
-
-    Linking.openURL(url).catch(() => {
-      Alert.alert("Erro", "Não foi possível abrir o WhatsApp.");
-    });
+  const handleWhatsApp = () => {
+    // Substitua pelo número real da Gisele
+    // O formato é: https://wa.me/55 + DDD + NUMERO
+    Linking.openURL('https://wa.me/5516999999999'); 
   };
 
   const renderItem = ({ item }) => (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
         <View style={styles.iconContainer}>
-            <Ionicons name={item.icon} size={24} color="#fff" />
+            <Ionicons name={item.icon} size={24} color="#5D4037" />
         </View>
-        <View style={styles.headerText}>
-            <Text style={styles.cardTitle}>{item.title}</Text>
-            <Text style={styles.cardPrice}>{item.price}</Text>
+        <View style={{flex: 1}}>
+            <Text style={styles.serviceTitle}>{item.title}</Text>
+            <Text style={styles.servicePrice}>{item.price}</Text>
         </View>
       </View>
       
-      <Text style={styles.cardDescription}>{item.description}</Text>
-      
-      <TouchableOpacity style={styles.button} onPress={() => openWhatsApp(item.title)}>
-        <Text style={styles.buttonText}>Agendar Agora</Text>
-        <Ionicons name="logo-whatsapp" size={18} color="#fff" style={{marginLeft: 8}} />
+      <Text style={styles.serviceDescription}>{item.description}</Text>
+
+      {/* Botão do WhatsApp */}
+      <TouchableOpacity style={styles.whatsappButton} onPress={handleWhatsApp}>
+        <FontAwesome name="whatsapp" size={20} color="#FFF" style={{marginRight: 10}} />
+        <Text style={styles.whatsappText}>Agendar em Araraquara</Text>
       </TouchableOpacity>
     </View>
   );
 
   return (
     <View style={styles.container}>
-      <Text style={styles.screenTitle}>Nossos Serviços 💇‍♀️</Text>
+      
+      {/* Cabeçalho Simples com botão de voltar */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+           <Ionicons name="arrow-back" size={24} color="#3E2723" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Nossos Serviços 💇🏾‍♀️</Text>
+      </View>
+
+      <Text style={styles.subtitle}>Atendimento exclusivo em Araraquara-SP</Text>
+
       <FlatList
-        data={servicesData}
-        renderItem={renderItem}
+        data={SERVICES}
         keyExtractor={item => item.id}
-        contentContainerStyle={styles.listContent}
+        renderItem={renderItem}
+        contentContainerStyle={{ paddingBottom: 20 }}
         showsVerticalScrollIndicator={false}
       />
     </View>
@@ -90,42 +88,86 @@ export default function ServicesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.background, paddingTop: 20 },
-  screenTitle: { fontSize: 26, fontWeight: 'bold', color: theme.colors.primary, textAlign: 'center', marginBottom: 20 },
-  listContent: { paddingHorizontal: 20, paddingBottom: 30 },
-  
-  card: { 
-    backgroundColor: '#fff', 
-    borderRadius: 15, 
-    padding: 15, 
+  container: {
+    flex: 1,
+    backgroundColor: '#FAF9F6', // Bege clarinho
+    padding: 20,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 30, // Margem para barra de status
+    marginBottom: 10,
+  },
+  backButton: {
+    marginRight: 15,
+    padding: 5,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#3E2723',
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#8D6E63',
     marginBottom: 20,
-    elevation: 3, // Sombra Android
-    shadowColor: '#000', // Sombra iOS
+    marginLeft: 45, // Alinhar com o texto do título
+  },
+  card: {
+    backgroundColor: '#FFF',
+    borderRadius: 15,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.05,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#EFEBE9',
   },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-  iconContainer: { 
-      width: 50, height: 50, 
-      backgroundColor: theme.colors.primary, 
-      borderRadius: 25, 
-      justifyContent: 'center', alignItems: 'center',
-      marginRight: 15
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
   },
-  headerText: { flex: 1 },
-  cardTitle: { fontSize: 18, fontWeight: 'bold', color: theme.colors.text },
-  cardPrice: { fontSize: 16, fontWeight: 'bold', color: theme.colors.accent, marginTop: 2 },
-  
-  cardDescription: { fontSize: 14, color: theme.colors.textLight, lineHeight: 20, marginBottom: 15 },
-  
-  button: { 
-      backgroundColor: '#25D366', 
-      paddingVertical: 10, 
-      borderRadius: 8, 
-      flexDirection: 'row', 
-      justifyContent: 'center', 
-      alignItems: 'center' 
+  iconContainer: {
+    width: 45,
+    height: 45,
+    borderRadius: 12,
+    backgroundColor: '#EFEBE9',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
   },
-  buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 }
+  serviceTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#3E2723',
+  },
+  servicePrice: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#2E7D32', // Um verde mais escuro e elegante para o preço
+    marginTop: 2,
+  },
+  serviceDescription: {
+    fontSize: 14,
+    color: '#6D4C41',
+    lineHeight: 20,
+    marginBottom: 15,
+  },
+  whatsappButton: {
+    backgroundColor: '#25D366', // Verde Oficial do WhatsApp
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderRadius: 10,
+  },
+  whatsappText: {
+    color: '#FFF',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
 });
