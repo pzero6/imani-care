@@ -1,114 +1,69 @@
 import { Ionicons } from '@expo/vector-icons';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { theme } from '../utils/theme';
 
-export default function ScheduleScreen() {
+export default function ScheduleScreen({ route }) {
+  const { userName } = route.params;
+  
+  // Exemplo de cronograma inicial
+  const [tarefas, setTarefas] = useState([
+    { id: 1, dia: 'Segunda', tipo: 'Hidratação', produto: '' },
+    { id: 2, dia: 'Quarta', tipo: 'Nutrição', produto: '' },
+    { id: 3, dia: 'Sexta', tipo: 'Hidratação', produto: '' },
+  ]);
+
+  const atualizarProduto = (id, texto) => {
+    const novasTarefas = tarefas.map(t => t.id === id ? { ...t, produto: texto } : t);
+    setTarefas(novasTarefas);
+  };
+
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Guia do Cronograma 🦁</Text>
-        <Text style={styles.subtitle}>
-          Siga este calendário mensal para recuperar a saúde dos seus cachos em casa.
-        </Text>
-      </View>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <Text style={styles.titulo}>Cronograma de {userName}</Text>
+      <Text style={styles.subtitulo}>Anote abaixo os produtos utilizados em cada etapa:</Text>
 
-      {/* TABELA DE 4 SEMANAS */}
-      <View style={styles.calendarContainer}>
-        <Text style={styles.sectionTitle}>📅 Sugestão de Agenda Mensal</Text>
-        
-        <View style={styles.weekRow}>
-          <Text style={styles.weekText}>Semana 1:</Text>
-          <View style={styles.badges}>
-            <Text style={[styles.badge, {backgroundColor: '#29B6F6'}]}>Hidra</Text>
-            <Text style={[styles.badge, {backgroundColor: '#FFA726'}]}>Nutri</Text>
-            <Text style={[styles.badge, {backgroundColor: '#29B6F6'}]}>Hidra</Text>
+      {tarefas.map((item) => (
+        <View key={item.id} style={styles.cardTarefa}>
+          <View style={styles.row}>
+            <Ionicons name="calendar-outline" size={20} color={theme.colors.primary} />
+            <Text style={styles.diaTexto}>{item.dia} - {item.tipo}</Text>
           </View>
+          
+          <TextInput
+            style={styles.inputProduto}
+            placeholder="Qual produto você usou?"
+            placeholderTextColor={theme.colors.secondary}
+            value={item.produto}
+            onChangeText={(txt) => atualizarProduto(item.id, txt)}
+          />
         </View>
+      ))}
 
-        <View style={styles.weekRow}>
-          <Text style={styles.weekText}>Semana 2:</Text>
-          <View style={styles.badges}>
-            <Text style={[styles.badge, {backgroundColor: '#29B6F6'}]}>Hidra</Text>
-            <Text style={[styles.badge, {backgroundColor: '#29B6F6'}]}>Hidra</Text>
-            <Text style={[styles.badge, {backgroundColor: '#FFA726'}]}>Nutri</Text>
-          </View>
-        </View>
-
-        <View style={styles.weekRow}>
-          <Text style={styles.weekText}>Semana 3:</Text>
-          <View style={styles.badges}>
-            <Text style={[styles.badge, {backgroundColor: '#29B6F6'}]}>Hidra</Text>
-            <Text style={[styles.badge, {backgroundColor: '#FFA726'}]}>Nutri</Text>
-            <Text style={[styles.badge, {backgroundColor: '#29B6F6'}]}>Hidra</Text>
-          </View>
-        </View>
-
-        <View style={styles.weekRow}>
-          <Text style={styles.weekText}>Semana 4:</Text>
-          <View style={styles.badges}>
-            <Text style={[styles.badge, {backgroundColor: '#29B6F6'}]}>Hidra</Text>
-            <Text style={[styles.badge, {backgroundColor: '#FFA726'}]}>Nutri</Text>
-            <Text style={[styles.badge, {backgroundColor: '#AB47BC'}]}>Recons</Text>
-          </View>
-        </View>
-      </View>
-
-      <Text style={[styles.sectionTitle, {marginTop: 20, marginBottom: 10}]}>📖 Entenda as Etapas</Text>
-
-      {/* FASE 1: HIDRATAÇÃO */}
-      <View style={[styles.card, { borderLeftColor: '#29B6F6' }]}>
-        <View style={styles.cardHeader}>
-          <Ionicons name="water" size={24} color="#29B6F6" />
-          <Text style={styles.cardTitle}>Hidratação (H)</Text>
-        </View>
-        <Text style={styles.cardText}>Repõe a ÁGUA. Use máscaras com Babosa, Pantenol ou Glicerina.</Text>
-      </View>
-
-      {/* FASE 2: NUTRIÇÃO */}
-      <View style={[styles.card, { borderLeftColor: '#FFA726' }]}>
-        <View style={styles.cardHeader}>
-          <Ionicons name="flask" size={24} color="#FFA726" />
-          <Text style={styles.cardTitle}>Nutrição (N)</Text>
-        </View>
-        <Text style={styles.cardText}>Repõe ÓLEOS. Use óleos vegetais (Coco, Argan, Rícino).</Text>
-      </View>
-
-      {/* FASE 3: RECONSTRUÇÃO */}
-      <View style={[styles.card, { borderLeftColor: '#AB47BC' }]}>
-        <View style={styles.cardHeader}>
-          <Ionicons name="hammer" size={24} color="#AB47BC" />
-          <Text style={styles.cardTitle}>Reconstrução (R)</Text>
-        </View>
-        <Text style={styles.cardText}>Repõe MASSA. Use Queratina (apenas a cada 15 ou 30 dias).</Text>
-      </View>
-
-      <View style={{height: 40}} />
+      <TouchableOpacity style={styles.botaoSalvar} onPress={() => alert('Notas salvas com sucesso!')}>
+        <Text style={styles.botaoTexto}>Salvar Registros</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.background, padding: 20 },
-  header: { marginBottom: 25 },
-  title: { fontSize: 26, fontWeight: 'bold', color: theme.colors.primary, marginBottom: 5 },
-  subtitle: { fontSize: 16, color: theme.colors.textLight },
-
-  calendarContainer: { backgroundColor: '#fff', padding: 20, borderRadius: 15, elevation: 2, marginBottom: 10 },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: theme.colors.text, marginBottom: 15 },
-  
-  weekRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12, justifyContent: 'space-between' },
-  weekText: { fontWeight: 'bold', color: '#666', width: 80 },
-  badges: { flexDirection: 'row', gap: 5 },
-  badge: { 
-    color: '#fff', paddingVertical: 4, paddingHorizontal: 8, 
-    borderRadius: 5, fontSize: 12, fontWeight: 'bold', overflow: 'hidden'
+  container: { flex: 1, backgroundColor: theme.colors.background },
+  content: { padding: 25, paddingTop: 60 },
+  titulo: { fontSize: 24, fontWeight: 'bold', color: theme.colors.primary, marginBottom: 5 },
+  subtitulo: { fontSize: 14, color: theme.colors.secondary, marginBottom: 30 },
+  cardTarefa: { backgroundColor: '#FFF', padding: 20, borderRadius: 15, marginBottom: 15, elevation: 2 },
+  row: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  diaTexto: { marginLeft: 10, fontSize: 16, fontWeight: 'bold', color: theme.colors.text },
+  inputProduto: { 
+    borderWidth: 1, 
+    borderColor: theme.colors.accent, 
+    borderRadius: 8, 
+    padding: 10, 
+    color: theme.colors.text,
+    fontSize: 14,
+    backgroundColor: theme.colors.background 
   },
-
-  card: {
-    backgroundColor: '#fff', borderRadius: 12, padding: 15, marginBottom: 15,
-    borderLeftWidth: 6, elevation: 1
-  },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  cardTitle: { fontSize: 18, fontWeight: 'bold', color: theme.colors.text, marginLeft: 10 },
-  cardText: { fontSize: 14, color: theme.colors.textLight, lineHeight: 20 }
+  botaoSalvar: { backgroundColor: theme.colors.secondary, padding: 18, borderRadius: 15, alignItems: 'center', marginTop: 20 },
+  botaoTexto: { color: '#FFF', fontSize: 16, fontWeight: 'bold' }
 });
