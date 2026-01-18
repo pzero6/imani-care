@@ -2,9 +2,6 @@ node_modules/
 .expo/
 dist/
 .env
-.env.local
 eas.json
 *.jks
-*.p8
-*.p12
 *.key
