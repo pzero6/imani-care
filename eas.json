@@ -12,6 +12,9 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_GEMINI_KEY": "AIzaSyD8767UDuYHjQSd4aPaI_sE8TKoC4XvL-Y"
       }
     },
     "production": {

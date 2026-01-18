@@ -11,26 +11,20 @@
       "resizeMode": "cover",
       "backgroundColor": "#FAF9F6"
     },
-    "ios": {
-      "supportsTablet": true
-    },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffe4c9"
-      },
       "package": "com.imanicare.app",
+      "versionCode": 1,
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
-      ]
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
+        "android.permission.INTERNET"
+      ],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FAF9F6"
+      }
     },
     "plugins": [
-      "expo-camera",
-      "expo-image-picker"
+      "expo-camera"
     ],
     "extra": {
       "eas": {
