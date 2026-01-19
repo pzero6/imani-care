@@ -16,7 +16,8 @@
       "versionCode": 1,
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.INTERNET"
+        "android.permission.INTERNET",
+        "android.permission.RECORD_AUDIO"
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
@@ -28,8 +29,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "78199bda-beac-43a6-82ac-a0f502547512"
+        "projectId": "33797cf7-64ed-4901-9a84-776611e68ee3"
       }
-    }
+    },
+    "owner": "pzero6_dev"
   }
 }
