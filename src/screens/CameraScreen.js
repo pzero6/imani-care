@@ -1,13 +1,26 @@
+import { useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
+
 import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { useRef, useState } from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { theme } from '../utils/theme';
 
-export default function CameraScreen({ route, navigation }) {
-  const { formData } = route.params;
+// Adicionei 'route' aqui para pegar o nome
+export default function CameraScreen({ navigation, route }) {
   const [permission, requestPermission] = useCameraPermissions();
+  
+  // PEGANDO O NOME QUE VEIO DA TELA ANTERIOR
+  const { userName } = route.params || {};
+
   const [facing, setFacing] = useState('front'); 
+  const [loading, setLoading] = useState(false);
   const cameraRef = useRef(null);
 
   if (!permission) {
@@ -16,10 +29,12 @@ export default function CameraScreen({ route, navigation }) {
 
   if (!permission.granted) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.message}>Precisamos da sua permissão para abrir a câmera</Text>
-        <TouchableOpacity style={styles.button} onPress={requestPermission}>
-          <Text style={styles.buttonText}>Conceder Permissão</Text>
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ color: '#fff', marginBottom: 20, textAlign: 'center' }}>
+          Precisamos de acesso à câmera
+        </Text>
+        <TouchableOpacity onPress={requestPermission} style={{ backgroundColor: '#FFF', padding: 10, borderRadius: 5 }}>
+          <Text style={{ fontWeight: 'bold' }}>Conceder Permissão</Text>
         </TouchableOpacity>
       </View>
     );
@@ -27,52 +42,74 @@ export default function CameraScreen({ route, navigation }) {
 
   const takePicture = async () => {
     if (cameraRef.current) {
+      setLoading(true);
       try {
         const photo = await cameraRef.current.takePictureAsync({
-          quality: 0.5,
-          base64: false,
+          quality: 0.7,
+          base64: true, 
         });
         
+        // AQUI ESTÁ A MÁGICA: Passamos o userName junto com a foto
         navigation.navigate('Result', { 
-          formData: formData, 
-          imageUri: photo.uri 
+            photoBase64: photo.base64,
+            userName: userName 
         });
+
       } catch (error) {
-        Alert.alert("Erro", "Não foi possível tirar a foto.");
+        alert("Erro ao tirar foto: " + error.message);
+      } finally {
+        setLoading(false);
       }
     }
   };
 
-  function toggleCameraFacing() {
+  const toggleCamera = () => {
     setFacing(current => (current === 'back' ? 'front' : 'back'));
-  }
+  };
 
   return (
     <View style={styles.container}>
+      <StatusBar hidden />
+      
       <CameraView 
         style={styles.camera} 
         facing={facing} 
         ref={cameraRef}
       >
-        <View style={styles.overlay}>
-          <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Ionicons name="arrow-back" size={30} color="#FFF" />
-            </TouchableOpacity>
-            <Text style={styles.headerText}>Posicione seu cabelo</Text>
-            <View style={{ width: 30 }} />
+        {loading && (
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="large" color="#FFF" />
+            <Text style={{color: '#FFF', marginTop: 10, fontWeight: 'bold'}}>Processando...</Text>
           </View>
+        )}
 
-          <View style={styles.controls}>
-            <TouchableOpacity style={styles.iconButton} onPress={toggleCameraFacing}>
-              <Ionicons name="camera-reverse" size={32} color="#FFF" />
+        <SafeAreaView style={styles.header}>
+          <TouchableOpacity 
+            style={styles.iconButton} 
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={28} color="#FFF" />
+          </TouchableOpacity>
+        </SafeAreaView>
+
+        <View style={styles.footer}>
+          <View style={{ flex: 1 }} />
+
+          <TouchableOpacity 
+            style={styles.captureButtonOuter} 
+            onPress={takePicture}
+            disabled={loading}
+          >
+            <View style={styles.captureButtonInner} />
+          </TouchableOpacity>
+
+          <View style={{ flex: 1, alignItems: 'flex-end', paddingRight: 20 }}>
+            <TouchableOpacity 
+              style={styles.iconButton} 
+              onPress={toggleCamera}
+            >
+              <Ionicons name="camera-reverse-outline" size={30} color="#FFF" />
             </TouchableOpacity>
-
-            <TouchableOpacity style={styles.captureButton} onPress={takePicture}>
-              <View style={styles.captureInternal} />
-            </TouchableOpacity>
-
-            <View style={{ width: 42 }} />
           </View>
         </View>
       </CameraView>
@@ -81,16 +118,12 @@ export default function CameraScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
-  camera: { flex: 1 },
-  overlay: { flex: 1, backgroundColor: 'transparent', justifyContent: 'space-between', padding: 30 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 20 },
-  headerText: { color: '#FFF', fontSize: 18, fontWeight: 'bold' },
-  message: { textAlign: 'center', paddingBottom: 10, color: '#FFF' },
-  controls: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', marginBottom: 20 },
-  captureButton: { width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(255, 255, 255, 0.3)', justifyContent: 'center', alignItems: 'center', borderWidth: 4, borderColor: '#FFF' },
-  captureInternal: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#FFF' },
-  iconButton: { padding: 10, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 50 },
-  button: { backgroundColor: theme.colors.primary, padding: 15, borderRadius: 10, alignSelf: 'center' },
-  buttonText: { color: '#FFF', fontWeight: 'bold' },
+  container: { flex: 1, backgroundColor: 'black' },
+  camera: { flex: 1, justifyContent: 'space-between' },
+  header: { paddingTop: 50, paddingLeft: 20, flexDirection: 'row', alignItems: 'flex-start' },
+  footer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 60, paddingHorizontal: 20, backgroundColor: 'rgba(0,0,0,0.2)', paddingTop: 30 },
+  iconButton: { width: 50, height: 50, borderRadius: 25, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center' },
+  captureButtonOuter: { width: 80, height: 80, borderRadius: 40, borderWidth: 6, borderColor: 'rgba(255,255,255,0.5)', justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
+  captureButtonInner: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#FFF' },
+  loadingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', alignItems: 'center', zIndex: 999 }
 });

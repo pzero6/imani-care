@@ -5,3 +5,7 @@ dist/
 eas.json
 *.jks
 *.key
+# Segurança
+.env
+.env.local
+.env.*

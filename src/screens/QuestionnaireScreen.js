@@ -48,22 +48,27 @@ export default function QuestionnaireScreen({ navigation }) {
   const progresso = ((passo + 1) / PERGUNTAS.length) * width;
 
   const proximo = (valor) => {
+    // Validação simples para não deixar passar sem nome
     if (perguntaAtual.tipo === 'input' && !inputValue) return alert("Por favor, insira um nome.");
 
-    const novasRespostas = { ...respostas, [perguntaAtual.id]: valor || inputValue };
+    const respostaAtual = valor || inputValue;
+    const novasRespostas = { ...respostas, [perguntaAtual.id]: respostaAtual };
+    
     setRespostas(novasRespostas);
     setInputValue('');
 
     if (passo < PERGUNTAS.length - 1) {
       setPasso(passo + 1);
     } else {
-      navigation.navigate('Camera', { formData: novasRespostas });
+      // CORREÇÃO AQUI: Passando o userName explicitamente para a Câmera
+      navigation.navigate('Camera', { 
+        userName: novasRespostas.userName // Agora a câmera vai pegar o nome certo!
+      });
     }
   };
 
   return (
     <View style={styles.container}>
-      {/* Barra de Progresso Sofisticada */}
       <View style={styles.progressBarContainer}>
         <View style={[styles.progressBar, { width: progresso }]} />
       </View>
